@@ -105,6 +105,14 @@ app.get("/register", (req, res) => {
   res.render("urls_registration", templateVars)
 }); 
 
+app.get("/login", (req, res) => {
+  const templateVars = {
+    email: req.params.email,
+    password: req.params.password
+  }
+  res.render("urls_login", templateVars); 
+})
+
 ////////////////// POST /////////////////////
 
 
@@ -128,9 +136,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
-
-  
-  // res.cookie("user_id", req.body.username);
+  let email = req.body.email; 
+  let password = req.body.password; 
   res.redirect("/urls"); 
 })
 
@@ -138,7 +145,7 @@ app.post("/logout", (req, res) => {
   const username  = req.body.username; 
   res.clearCookie("user_id", username); 
   res.redirect("/urls"); 
-})
+}); 
 
 app.post("/register", (req, res) => {
   let email = req.body.email;
