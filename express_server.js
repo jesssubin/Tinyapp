@@ -78,7 +78,7 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
+    user: req.user;
   };
   res.render("urls_new", templateVars);
 });
@@ -87,7 +87,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL], 
-    username: req.cookies["username"]};
+    user: req.user; };
   res.render("urls_show", templateVars);
 });
 
@@ -146,16 +146,18 @@ app.post("/login", (req, res) => {
     if(users[user].password === password){
     res.cookie("user_id", user); 
     res.redirect("/urls"); 
-    } 
+    } else {
+      res.status(403).send("Please check your password"); 
+    }
   } else {
-    res.status(400).send("User not found");
+    res.status(403).send("User not found");
   }
   
 })
 
 app.post("/logout", (req, res) => {
-  const username  = req.body.username; 
-  res.clearCookie("user_id", username); 
+  user = req.user; 
+  res.clearCookie("user_id", userId); 
   res.redirect("/urls"); 
 }); 
 
