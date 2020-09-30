@@ -18,7 +18,7 @@ function generateRandomString() {
 const emailVerify = function (email) {
   for (const user in users) {
     if(users[user].email === email) {
-      return true; 
+      return user;
     }
   }
   return false; 
@@ -108,7 +108,8 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   const templateVars = {
     email: req.params.email,
-    password: req.params.password
+    password: req.params.password,
+    user: req.user
   }
   res.render("urls_login", templateVars); 
 })
@@ -138,7 +139,18 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/login", (req, res) => {
   let email = req.body.email; 
   let password = req.body.password; 
-  res.redirect("/urls"); 
+  let user = emailVerify(email); 
+  if ((!email) || (!password)) {
+    res.status(400).send("Please provide valid email and password");
+  } else if (user) {
+    if(users[user].password === password){
+    res.cookie("user_id", user); 
+    res.redirect("/urls"); 
+    } 
+  } else {
+    res.status(400).send("User not found");
+  }
+  
 })
 
 app.post("/logout", (req, res) => {
