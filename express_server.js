@@ -7,6 +7,25 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser()); 
 app.set("view engine", "ejs");
 
+
+/////HELPER FUNCTION 
+function generateRandomString() {
+  let randomStr = "";
+  randomStr = Math.random.toString(36).substring(2, 8);
+  return randomStr;
+}
+
+const emailVerification = function (obj) {
+  for (let user in users) {
+    const userEmail = users[user].email
+    // console.log('user', users[user].email) // email x 2  //"user@example.com"
+    if (userEmail === req.params.email) { // checked which email is correct
+      res.render('urls_login', user_id) // take the user objec of the CORRECT email by account and push to render
+    }
+  }
+}
+
+/////DATA
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -20,20 +39,24 @@ const users = {
   }
 }
 
-function generateRandomString() {
-  let randomStr = "";
-  randomStr = Math.random.toString(36).substring(2, 8);
-  return randomStr;
-}
-
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+app.use((req, res, next) => {
+  const user_id = req.cookies["user_id"]  
+  const user = users[user_id];  
+  req.user = user  
+  next();
+})
+
+//////////////////// GET //////////////////////
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
+
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -44,8 +67,9 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  
   const templateVars = { 
-    username: req.cookies["username"],
+    user: req.user, 
     urls: urlDatabase
   }; 
   res.render("urls_index", templateVars); 
@@ -77,24 +101,14 @@ app.get("/register", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
-  };
-  res.render("urls_registration", templateVars)
-})
-
-app.post("/register", (req, res) => {
-  console.log(req.body); 
-  const userId = generateRandomString(); 
-  const userInfo = {
-    id: userId, 
-    email: req.body.email, 
-    password: req.body.password
+    user: {
+      email: 'example@gmail.com'
+    }
   }
-  users[userId] = userInfo; 
-  res.cookie("username", userId); 
-  console.log(users); 
-  res.redirect("/urls")
-})
+  res.render("urls_registration", templateVars)
+}); 
+
+////////////////// POST /////////////////////
 
 
 app.post("/urls", (req, res) => {
@@ -117,16 +131,35 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
-  const username = req.body.username;
-  res.cookie("username", username);
+
+  
+  // res.cookie("user_id", req.body.username);
   res.redirect("/urls"); 
 })
 
 app.post("/logout", (req, res) => {
   const username  = req.body.username; 
-  res.clearCookie("username", username); 
+  res.clearCookie("user_id", username); 
   res.redirect("/urls"); 
 })
+
+app.post("/register", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  
+  const userId = generateRandomString();
+  const userInfo = {
+    id: userId,
+    email: req.body.email,
+    password: req.body.password
+  }
+  //adding in new userInfo
+  users[userId] = userInfo;
+  res.cookie("user_id", userId);
+  
+  res.redirect("/urls")
+  })
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
