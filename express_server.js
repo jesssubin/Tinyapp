@@ -15,14 +15,13 @@ function generateRandomString() {
   return randomStr;
 }
 
-const emailVerification = function (obj) {
-  for (let user in users) {
-    const userEmail = users[user].email
-    // console.log('user', users[user].email) // email x 2  //"user@example.com"
-    if (userEmail === req.params.email) { // checked which email is correct
-      res.render('urls_login', user_id) // take the user objec of the CORRECT email by account and push to render
+const emailVerify = function (email) {
+  for (const user in users) {
+    if(users[user].email === email) {
+      return true; 
     }
   }
+  return false; 
 }
 
 /////DATA
@@ -101,9 +100,7 @@ app.get("/register", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user: {
-      email: 'example@gmail.com'
-    }
+    user: req.user
   }
   res.render("urls_registration", templateVars)
 }); 
@@ -144,9 +141,13 @@ app.post("/logout", (req, res) => {
 })
 
 app.post("/register", (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  
+  let email = req.body.email;
+  let password = req.body.password;
+  if ((!email) || (!password)) {
+    res.status(400).send("Please provide valid email and password"); 
+  } else if(emailVerify(email)) {
+    res.status(400).send("Email already exists. Please use other email.")
+  } else {
   const userId = generateRandomString();
   const userInfo = {
     id: userId,
@@ -158,7 +159,8 @@ app.post("/register", (req, res) => {
   res.cookie("user_id", userId);
   
   res.redirect("/urls")
-  })
+ }
+})
 
 
 app.listen(PORT, () => {
