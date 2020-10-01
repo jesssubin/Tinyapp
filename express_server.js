@@ -10,13 +10,13 @@ app.set("view engine", "ejs");
 
 
 /////HELPER FUNCTION
-const generateRandomString = function() {
+const generateRandomString = function () {
   let randomStr = "";
   randomStr = Math.random().toString(36).substring(2, 8);
   return randomStr;
 };
 
-const emailVerify = function(email) {
+const emailVerify = function (email) {
   for (const userID in users) {
     if (users[userID].email === email) {
       return users[userID];
@@ -25,7 +25,7 @@ const emailVerify = function(email) {
   return false;
 };
 
-const urlsForUser = function(id) {
+const urlsForUser = function (id) {
   let userDatabase = {};
   for (const key in urlDatabase) {
     let databaseID = urlDatabase[key].userID;
@@ -80,7 +80,7 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
  
   const templateVars = {
-    user: req.user,
+    user: users[req.cookies["user_id"]],
     urls: urlsForUser(req.cookies.user_id)
   };
   res.render("urls_index", templateVars);
@@ -130,7 +130,7 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   const templateVars = {
     email: req.params.email,
-    password: req.params.password, 
+    password: req.params.password,
     user: req.user
   };
   res.render("urls_login", templateVars);
@@ -165,12 +165,15 @@ app.post("/login", (req, res) => {
   let password = req.body.password;
   let hashedPassword = bcrypt.hashSync(password, 10);
   let user = emailVerify(email);
+  console.log("user.password:", user.password); 
+  console.log("password", password); 
   if ((!email) || (!password)) {
     res.status(400).send("Please provide valid email and password");
   } else if (user) {
-    console.log("password: ", password, user.password); 
+    console.log("user", user); 
     if (bcrypt.compareSync(password, user.password)) {
-      res.cookie("user_id", user);
+      console.log("password match"); 
+      res.cookie("user_id", user.id);
       res.redirect("/urls");
     } else {
       res.status(403).send("Please check your password");
@@ -178,7 +181,7 @@ app.post("/login", (req, res) => {
   } else {
     res.status(403).send("User not found");
   }
-  
+
 });
 
 app.post("/logout", (req, res) => {
@@ -205,7 +208,7 @@ app.post("/register", (req, res) => {
     //adding in new userInfo
     users[userId] = userInfo;
     res.cookie("user_id", userId);
-    console.log(users); 
+    console.log(users);
     res.redirect("/urls");
   }
 });
@@ -214,4 +217,3 @@ app.post("/register", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
