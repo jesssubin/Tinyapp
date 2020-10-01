@@ -82,7 +82,6 @@ app.get("/urls", (req, res) => {
     user: req.user, 
     urls: urlsForUser(req.cookies.user_id)
   }; 
-  console.log(req.cookies.user_id); 
   res.render("urls_index", templateVars); 
 })
 
@@ -101,13 +100,16 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  if (req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) {
   const templateVars = { 
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL], 
-    user: req.user 
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL,
+    user: users[req.cookies["user_id"]]
   };
-  console.log(req.params.shortURL); 
   res.render("urls_show", templateVars);
+  } else {
+    res.redirect("/login"); 
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -149,8 +151,12 @@ app.post("/urls/:shortURL", (req, res) => {
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL]; 
-    res.redirect("/urls");
+  if(res.cookie("user_id") === urlDatabase[req.params.shortURL].userID){
+  delete urlDatabase[req.params.shortURL]
+    res.redirect("/urls")
+  } else {
+    res.redirect("/login");
+  }
 })
 
 app.post("/login", (req, res) => {
