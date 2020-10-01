@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser()); 
 app.set("view engine", "ejs");
@@ -40,12 +41,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple"
+    password: bcrypt.hashSync("purple", 10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher"
+    password: bcrypt.hashSync("dishwasher", 10)
   }
 }
 
@@ -129,7 +130,7 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   const templateVars = {
     email: req.params.email,
-    password: req.params.password,
+    password: bcrypt.hashSync(req.params.password, 10),
     user: req.user
   }
   res.render("urls_login", templateVars); 
@@ -162,11 +163,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/login", (req, res) => {
   let email = req.body.email; 
   let password = req.body.password; 
+  let hashedPassword = bcrypt.hashSync(password, 10); 
   let user = emailVerify(email); 
   if ((!email) || (!password)) {
     res.status(400).send("Please provide valid email and password");
   } else if (user) {
-    if(users[user].password === password){
+    if(users[user].password === hashedPassword){
     res.cookie("user_id", user); 
     res.redirect("/urls"); 
     } else {
@@ -196,7 +198,7 @@ app.post("/register", (req, res) => {
   const userInfo = {
     id: userId,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, 10)
   }
   //adding in new userInfo
   users[userId] = userInfo;
