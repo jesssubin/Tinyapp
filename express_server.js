@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 const cookieSession = require('cookie-session'); 
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
+const getUserByEmail = require('./helpers'); 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
@@ -16,16 +17,7 @@ const generateRandomString = function () {
   return randomStr;
 };
 
-const emailVerify = function (email) {
-  for (const userID in users) {
-    if (users[userID].email === email) {
-      return users[userID];
-    }
-  }
-  return false;
-};
-
-const urlsForUser = function (id) {
+const urlsForUser = function (id, urlDatabase) {
   let userDatabase = {};
   for (const key in urlDatabase) {
     let databaseID = urlDatabase[key].userID;
@@ -66,7 +58,7 @@ app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
 }))
-//////////////////// GET //////////////////////
+//////////////////// GET ROUTES //////////////////////
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -168,7 +160,7 @@ app.post("/login", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   let hashedPassword = bcrypt.hashSync(password, 10);
-  let user = emailVerify(email);
+  let user = getUserByEmail(email, users);
   console.log("user.password:", user.password); 
   console.log("password", password); 
   if ((!email) || (!password)) {
@@ -200,7 +192,7 @@ app.post("/register", (req, res) => {
   let hashedPassword = bcrypt.hashSync(password, 10);
   if ((!email) || (!password)) {
     res.status(400).send("Please provide valid email and password");
-  } else if (emailVerify(email)) {
+  } else if (getUserByEmail(email, users)) {
     res.status(400).send("Email already exists. Please use other email.");
   } else {
     const userId = generateRandomString();
