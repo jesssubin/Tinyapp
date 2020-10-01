@@ -9,9 +9,9 @@ app.set("view engine", "ejs");
 
 
 /////HELPER FUNCTION 
-function generateRandomString() {
+const generateRandomString = function () {
   let randomStr = "";
-  randomStr = Math.random.toString(36).substring(2, 8);
+  randomStr = Math.random().toString(36).substring(2, 8);
   return randomStr;
 }
 
@@ -29,7 +29,7 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "purple"
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -75,12 +75,17 @@ app.get("/urls", (req, res) => {
 })
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
-    user: req.user
-  };
-  res.render("urls_new", templateVars);
+  const userId = req.cookies["user_id"]; 
+  if (users[userId]){
+    const templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL],
+      user: req.user
+    };
+    res.render("urls_new", templateVars);
+} else {
+  res.redirect("/login");
+}
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -89,6 +94,7 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[req.params.shortURL], 
     user: req.user 
   };
+  console.log(req.params.shortURL); 
   res.render("urls_show", templateVars);
 });
 
@@ -119,17 +125,14 @@ app.get("/login", (req, res) => {
 
 
 app.post("/urls", (req, res) => {
-  const shortUrl = generateRandomString(); 
+  let shortUrl = generateRandomString(); 
   urlDatabase[shortUrl] = req.body.longURL;
-  // console.log(shortUrl);  
-  // console.log(urlDatabase); 
-  // console.log(req.body);  // Log the POST request body to the console
-  res.redirect(`/urls/:${shortUrl}`);         // Respond with 'Ok' (we will replace this)
+  res.redirect(`/urls/${shortUrl}`);         
 });
 
 app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;
-  res.redirect(`/urls/${req.params.shortURL}`); 
+  res.redirect(`/urls`); 
   }); 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
