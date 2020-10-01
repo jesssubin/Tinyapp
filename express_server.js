@@ -78,7 +78,7 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user: req.user;
+    user: req.user
   };
   res.render("urls_new", templateVars);
 });
@@ -87,7 +87,8 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL], 
-    user: req.user; };
+    user: req.user 
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -157,7 +158,7 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   user = req.user; 
-  res.clearCookie("user_id", userId); 
+  res.clearCookie("user_id", user); 
   res.redirect("/urls"); 
 }); 
 
