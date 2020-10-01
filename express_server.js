@@ -24,6 +24,17 @@ const emailVerify = function (email) {
   return false; 
 }
 
+const urlsForUser = function (id) {
+  let userDatabase = {}; 
+  for(const key in urlDatabase){
+    let databaseID = urlDatabase[key].userID
+    if (databaseID === id) {
+      userDatabase[key] = urlDatabase[key];
+    }
+  } 
+  return userDatabase; 
+}
+
 /////DATA
 const users = {
   "userRandomID": {
@@ -34,7 +45,7 @@ const users = {
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: "dishwasher"
   }
 }
 
@@ -66,11 +77,12 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  
+ 
   const templateVars = { 
     user: req.user, 
-    urls: urlDatabase
+    urls: urlsForUser(req.cookies.user_id)
   }; 
+  console.log(req.cookies.user_id); 
   res.render("urls_index", templateVars); 
 })
 
@@ -134,6 +146,7 @@ app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect(`/urls`); 
   }); 
+
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL]; 
