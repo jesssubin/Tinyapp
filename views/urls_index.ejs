@@ -20,21 +20,27 @@
         <tr>
           <th scope="col">Short URL</th>
           <th scope="col">Long URL</th>
+          <th scope="col">Edit</th>
           <th scope="col">Delete</th>
         </tr>
       </thead>
       <tbody>
+        <% if (user) {%> 
         <% for(let url in urls) { %>
         <tr>
           <td><%= url %></td>
-          <td><%= urls[url] %></td>
+          <td><%= urls[url].longURL %></td>
+          <td><a href="/urls/<%= url %>" class="btn btn-primary">Edit</a></td>
           <td>
             <form method="POST" action="/urls/<%= url %>/delete">
             <button type="submit" class="btn btn-primary">Delete</button>
             </form>
           </td>
-         
         </tr>
+        <% } %>
+        <% } else { %>
+          <h4> Welcome to Tiny App!</h4>
+          <p> please login or register first </p>
         <% } %>
       </tbody>
     </table>

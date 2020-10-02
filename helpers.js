@@ -20,10 +20,9 @@ const getUserByEmail = function (email, users) {
   for (const userID in users) {
     if (users[userID].email === email) {
       return userID; 
-    } else {
-      return undefined; 
-    }
+    } 
   }
+  return undefined; 
 };
 
 module.exports = { generateRandomString, urlsForUser, getUserByEmail };  

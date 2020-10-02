@@ -12,6 +12,7 @@
   <%- include('partials/_header') %>
   <div class="card text-center">
     <div class="card-header"></div>
+    <% if (user) { %>
     <div class="card-body">
       <h5 class="card-title">TinyURL for: <%= longURL %></h5>
       <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
@@ -25,7 +26,12 @@
         </form>
       </td>
     </div>
+    <% } else { %>
+      <h3>This url is invalid</h3>
+      <p>Please log in</p>
+    <% } %>
     <div class="card-footer text-muted"></div>
+    
   </div>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
