@@ -80,7 +80,7 @@ app.get("/urls/:shortURL", (req, res) => {
     }
     res.render("404", templateVars1); 
   }
-});
+}); 
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
