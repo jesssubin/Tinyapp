@@ -1,34 +1,17 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-const cookieSession = require('cookie-session'); 
-const bodyParser = require("body-parser");
-const bcrypt = require('bcrypt');
-const getUserByEmail = require('./helpers'); 
-app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
+const cookieSession = require('cookie-session'); 
+app.use(cookieSession({ name: 'session', keys: ['key1', 'key2']}))
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({ extended: true }));
+const bcrypt = require('bcrypt');
+const { generateRandomString, urlsForUser, getUserByEmail } = require('./helpers'); 
 
 
+////////////////// DATA /////////////////
 
-/////HELPER FUNCTION
-const generateRandomString = function () {
-  let randomStr = "";
-  randomStr = Math.random().toString(36).substring(2, 8);
-  return randomStr;
-};
-
-const urlsForUser = function (id, urlDatabase) {
-  let userDatabase = {};
-  for (const key in urlDatabase) {
-    let databaseID = urlDatabase[key].userID;
-    if (databaseID === id) {
-      userDatabase[key] = urlDatabase[key];
-    }
-  }
-  return userDatabase;
-};
-
-/////DATA
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -47,23 +30,11 @@ const urlDatabase = {
   "9sm5xK": { longURL: "http://www.google.com", userID: "user2RandomID" }
 };
 
-// app.use((req, res, next) => {
-//   const user_id = req.session.user_id;
-//   const user = users[user_id];
-//   req.user = user;
-//   next();
-// });
-
-app.use(cookieSession({
-  name: 'session',
-  keys: ['key1', 'key2']
-}))
 //////////////////// GET ROUTES //////////////////////
 
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
-
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -132,7 +103,7 @@ app.get("/login", (req, res) => {
   res.render("urls_login", templateVars);
 });
 
-////////////////// POST /////////////////////
+////////////////// POST ROUTES /////////////////////
 
 
 app.post("/urls", (req, res) => {
@@ -145,7 +116,6 @@ app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect(`/urls`);
 });
-
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
@@ -177,7 +147,6 @@ app.post("/login", (req, res) => {
   } else {
     res.status(403).send("User not found");
   }
-
 });
 
 app.post("/logout", (req, res) => {
@@ -208,7 +177,6 @@ app.post("/register", (req, res) => {
     res.redirect("/urls");
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
