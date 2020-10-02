@@ -2,12 +2,12 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
-const cookieSession = require('cookie-session'); 
-app.use(cookieSession({ name: 'session', keys: ['key1', 'key2']}))
+const cookieSession = require('cookie-session');
+app.use(cookieSession({ name: 'session', keys: ['key1', 'key2']}));
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 const bcrypt = require('bcrypt');
-const { generateRandomString, urlsForUser, getUserByEmail } = require('./helpers'); 
+const { generateRandomString, urlsForUser, getUserByEmail } = require('./helpers');
 
 
 ////////////////// DATA /////////////////
@@ -44,11 +44,10 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-app.get("/urls", (req, res) => { 
-  console.log(req.session); 
+app.get("/urls", (req, res) => {
   const templateVars = {
     user: users[req.session.user_id],
-    urls: urlsForUser(req.session.user_id)
+    urls: urlsForUser(req.session.user_id, urlDatabase)
   };
   res.render("urls_index", templateVars);
 });
@@ -59,7 +58,7 @@ app.get("/urls/new", (req, res) => {
     const templateVars = {
       shortURL: req.params.shortURL,
       longURL: urlDatabase[req.params.shortURL],
-      user: req.user
+      user: users[req.session.user_id]
     };
     res.render("urls_new", templateVars);
   } else {
@@ -89,7 +88,7 @@ app.get("/register", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user: req.user
+    user: users[req.session.user_id]
   };
   res.render("urls_registration", templateVars);
 });
@@ -98,7 +97,7 @@ app.get("/login", (req, res) => {
   const templateVars = {
     email: req.params.email,
     password: req.params.password,
-    user: req.user
+    user: users[req.session.user_id]
   };
   res.render("urls_login", templateVars);
 });
@@ -112,8 +111,9 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortUrl}`);
 });
 
-app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
+app.post("/urls/:shortURL", (req, res) => { 
+  
+  urlDatabase[req.params.shortURL] = { longURL: req.body.longURL, userID: req.session.user_id };
   res.redirect(`/urls`);
 });
 
@@ -126,39 +126,11 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 });
 
-app.post("/login", (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;
-  let hashedPassword = bcrypt.hashSync(password, 10);
-  let user = getUserByEmail(email, users);
-  console.log("user.password:", user.password); 
-  console.log("password", password); 
-  if ((!email) || (!password)) {
-    res.status(400).send("Please provide valid email and password");
-  } else if (user) {
-    console.log("user", user); 
-    if (bcrypt.compareSync(password, user.password)) {
-      console.log("password match"); 
-      req.session.user_id = user.id;
-      res.redirect("/urls");
-    } else {
-      res.status(403).send("Please check your password");
-    }
-  } else {
-    res.status(403).send("User not found");
-  }
-});
-
-app.post("/logout", (req, res) => {
-  user = req.user;
-  req.session = null;
-  res.redirect("/urls");
-});
-
 app.post("/register", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   let hashedPassword = bcrypt.hashSync(password, 10);
+  //if email or password is empty
   if ((!email) || (!password)) {
     res.status(400).send("Please provide valid email and password");
   } else if (getUserByEmail(email, users)) {
@@ -172,10 +144,33 @@ app.post("/register", (req, res) => {
     };
     //adding in new userInfo
     users[userId] = userInfo;
-    req.session.user_id = userId; 
-    console.log(users);
+    req.session.user_id = userId;
     res.redirect("/urls");
   }
+});
+
+app.post("/login", (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;1
+  let hashedPassword = bcrypt.hashSync(password, 10);
+  let user = getUserByEmail(email, users);
+  if ((!email) || (!password)) {
+    res.status(400).send("Please provide valid email and password");
+  } else if (user) {
+    if (bcrypt.compareSync(password, users[user].password)) {
+      req.session.user_id = users[user].id;
+      res.redirect("/urls");
+    } else {
+      res.status(403).send("Please check your password");
+    }
+  } else {
+    res.status(403).send("User not found");
+  }
+});
+
+app.post("/logout", (req, res) => {
+  req.session = null;
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
