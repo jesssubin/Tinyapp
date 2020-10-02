@@ -75,7 +75,10 @@ app.get("/urls/:shortURL", (req, res) => {
     };
     res.render("urls_show", templateVars);
   } else {
-    res.redirect("/login");
+    const templateVars1 = {
+      user: users[req.session.user_id]
+    }
+    res.render("404", templateVars1); 
   }
 });
 
