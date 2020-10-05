@@ -83,8 +83,9 @@ app.get("/urls/:shortURL", (req, res) => {
 }); 
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  const shortURL = req.params.shortURL; 
+  const longURL = urlDatabase[shortURL].longURL;
+  res.redirect(`${longURL}`);
 });
 
 app.get("/register", (req, res) => {
@@ -109,13 +110,12 @@ app.get("/login", (req, res) => {
 
 
 app.post("/urls", (req, res) => {
-  let shortUrl = generateRandomString();
+  const shortUrl = generateRandomString();
   urlDatabase[shortUrl] = { longURL: req.body.longURL, userID: req.session.user_id };
   res.redirect(`/urls/${shortUrl}`);
 });
 
 app.post("/urls/:shortURL", (req, res) => { 
-  
   urlDatabase[req.params.shortURL] = { longURL: req.body.longURL, userID: req.session.user_id };
   res.redirect(`/urls`);
 });
@@ -130,9 +130,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;
-  let hashedPassword = bcrypt.hashSync(password, 10);
+  const email = req.body.email;
+  const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   //if email or password is empty
   if ((!email) || (!password)) {
     res.status(400).send("Please provide valid email and password");
@@ -153,10 +153,9 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;1
-  let hashedPassword = bcrypt.hashSync(password, 10);
-  let user = getUserByEmail(email, users);
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = getUserByEmail(email, users);
   if ((!email) || (!password)) {
     res.status(400).send("Please provide valid email and password");
   } else if (user) {
